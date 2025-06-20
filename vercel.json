@@ -1,32 +1,8 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    },
-    {
-      "src": "requirements.txt",
-      "use": "@vercel/python"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
-  ],
   "functions": {
     "app/api/process-intersection/route.ts": {
       "maxDuration": 300,
       "memory": 3008
     }
-  },
-  "env": {
-    "PYTHONPATH": "."
   }
 } 
