@@ -1,19 +1,27 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ReactPlayer from 'react-player'
 import { Play, Pause, RotateCcw, Download, Car, Bus, Truck, Bike, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, TrendingUp, Clock, Zap } from 'lucide-react'
 import { TrafficData } from '@/types/traffic'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface TrafficDisplayProps {
   data: TrafficData
 }
 
-const DIRECTION_ICONS = {
+const DIRECTION_CONFIG = {
+  north: { rotation: 0, position: 'top-0 left-1/2 -translate-x-1/2' },
+  south: { rotation: 180, position: 'bottom-0 left-1/2 -translate-x-1/2' },
+  east: { rotation: 90, position: 'top-1/2 right-0 -translate-y-1/2' },
+  west: { rotation: -90, position: 'top-1/2 left-0 -translate-y-1/2' },
+}
+
+const ICONS = {
   north: ArrowUp,
   south: ArrowDown,
   east: ArrowRight,
-  west: ArrowLeft
+  west: ArrowLeft,
 }
 
 const INTENSITY_COLORS = {
@@ -23,9 +31,11 @@ const INTENSITY_COLORS = {
 }
 
 export default function TrafficDisplay({ data }: TrafficDisplayProps) {
+  const { lanes, signalTimings } = data.intersectionData
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [selectedLane, setSelectedLane] = useState<string | null>(null)
+  const [activeSignal, setActiveSignal] = useState(0)
 
   const vehicleIcons = {
     car: Car,
@@ -37,7 +47,7 @@ export default function TrafficDisplay({ data }: TrafficDisplayProps) {
 
   const getVehicleTypeCount = () => {
     const counts: Record<string, number> = {}
-    data.intersectionData.lanes.forEach(lane => {
+    lanes.forEach(lane => {
       lane.vehicleDetections.forEach(detection => {
         counts[detection.label] = (counts[detection.label] || 0) + 1
       })
@@ -46,6 +56,28 @@ export default function TrafficDisplay({ data }: TrafficDisplayProps) {
   }
 
   const vehicleCounts = getVehicleTypeCount()
+
+  useEffect(() => {
+    const totalCycleTime = signalTimings.reduce((sum, timing) => sum + timing.green + timing.yellow, 0)
+    if (totalCycleTime === 0) return
+
+    const timer = setInterval(() => {
+      setCurrentTime((prevTime) => {
+        if (prevTime >= totalCycleTime) {
+          return 0
+        }
+        return prevTime + 0.1
+      })
+    }, 100)
+
+    return () => clearInterval(timer)
+  }, [signalTimings])
+
+  if (!lanes || lanes.length === 0) {
+    return (
+      <div className="text-gray-500">No traffic data to display.</div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -73,8 +105,8 @@ export default function TrafficDisplay({ data }: TrafficDisplayProps) {
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">Lane Traffic Summary</h3>
             <div className="space-y-3">
-              {data.intersectionData.lanes.map((lane) => {
-                const DirectionIcon = DIRECTION_ICONS[lane.direction as keyof typeof DIRECTION_ICONS] || ArrowUp
+              {lanes.map((lane) => {
+                const DirectionIcon = ICONS[lane.direction as keyof typeof ICONS] || ArrowUp
                 const intensityColor = INTENSITY_COLORS[lane.trafficIntensity]
                 
                 return (
@@ -110,8 +142,8 @@ export default function TrafficDisplay({ data }: TrafficDisplayProps) {
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">Signal Timing Distribution</h3>
             <div className="space-y-3">
-              {data.intersectionData.signalTimings.map((timing, index) => {
-                const DirectionIcon = DIRECTION_ICONS[timing.direction as keyof typeof DIRECTION_ICONS] || ArrowUp
+              {signalTimings.map((timing, index) => {
+                const DirectionIcon = ICONS[timing.direction as keyof typeof ICONS] || ArrowUp
                 const intensityColor = INTENSITY_COLORS[timing.trafficIntensity]
                 
                 return (
@@ -126,7 +158,15 @@ export default function TrafficDisplay({ data }: TrafficDisplayProps) {
                       </div>
                       <div className="flex items-center space-x-1">
                         <TrendingUp className="h-4 w-4 text-primary-600" />
-                        <span className="text-sm font-medium">Priority: {timing.priority.toFixed(1)}</span>
+                        <div className="flex items-center text-sm">
+                          <span className="w-16 font-medium text-gray-700">Priority:</span>
+                          <div className="w-full bg-gray-200 rounded-full h-2.5">
+                            <div 
+                              className="bg-blue-600 h-2.5 rounded-full" 
+                              style={{ width: `${(timing.priority || 0) * 100}%` }}
+                            ></div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     

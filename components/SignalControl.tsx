@@ -5,7 +5,7 @@ import { Settings, Play, Pause, RotateCcw, ArrowUp, ArrowDown, ArrowLeft, ArrowR
 import { TrafficData } from '@/types/traffic'
 
 interface SignalControlProps {
-  trafficData: TrafficData | null
+  data: TrafficData | null
 }
 
 const DIRECTION_ICONS = {
@@ -306,53 +306,70 @@ const TrafficLightAnimation = ({
   )
 }
 
-export default function SignalControl({ trafficData }: SignalControlProps) {
-  const [isSimulationRunning, setIsSimulationRunning] = useState(false)
+export default function SignalControl({ data }: SignalControlProps) {
+  const [simulationSpeed, setSimulationSpeed] = useState(1)
+  const [isRunning, setIsRunning] = useState(false)
   const [currentSignal, setCurrentSignal] = useState(0)
-  const [signalTimings, setSignalTimings] = useState<any[]>([])
-  const [cycleTime, setCycleTime] = useState(0)
-  const [simulationSpeed, setSimulationSpeed] = useState(2) // Default speed 2x
+  const [editedTimings, setEditedTimings] = useState<any[] | null>(null)
+
+  const originalTimings = data?.intersectionData.signalTimings
+  const signalTimings = editedTimings || originalTimings || []
 
   useEffect(() => {
-    if (trafficData?.intersectionData) {
-      const timings = trafficData.intersectionData.signalTimings
+    if (data?.intersectionData) {
+      const timings = data.intersectionData.signalTimings
       setSignalTimings(timings)
-      setCycleTime(trafficData.intersectionData.cycleTime)
     }
-  }, [trafficData])
+    // When trafficData changes, reset the simulation
+    resetSimulation()
+  }, [data])
 
-  // Handle signal transitions when animation completes
   const handleSignalComplete = useCallback(() => {
-    if (isSimulationRunning && signalTimings.length > 0) {
-      const nextSignal = (currentSignal + 1) % signalTimings.length
-      setCurrentSignal(nextSignal)
-    }
-  }, [isSimulationRunning, signalTimings.length, currentSignal])
+    setCurrentSignal((prev) => (prev + 1) % (signalTimings.length || 1))
+  }, [signalTimings.length])
 
   const toggleSimulation = () => {
-    setIsSimulationRunning(!isSimulationRunning)
-    if (!isSimulationRunning) {
+    setIsRunning(!isRunning)
+    if (!isRunning) {
       setCurrentSignal(0)
     }
   }
 
   const resetSimulation = () => {
-    setIsSimulationRunning(false)
+    setIsRunning(false)
     setCurrentSignal(0)
+    setEditedTimings(null)
   }
 
   const updateSignalTiming = (index: number, field: 'green' | 'yellow' | 'red', value: number) => {
-    setSignalTimings(prev => prev.map((signal, i) => 
-      i === index ? { ...signal, [field]: Math.max(5, Math.min(60, value)) } : signal
-    ))
-  }
+    const currentTimings = editedTimings || originalTimings || [];
+    const newTimings = currentTimings.map((timing, i) => {
+      if (i === index) {
+        return { ...timing, [field]: Math.max(0, value) };
+      }
+      return timing;
+    });
+    setEditedTimings(newTimings);
+  };
 
   const getCurrentLaneData = () => {
-    if (!trafficData?.intersectionData?.lanes || signalTimings.length === 0) return null
-    return trafficData.intersectionData.lanes[currentSignal]
+    if (!data || !signalTimings[currentSignal]) return null
+    return data.intersectionData.lanes.find(
+      (lane) => lane.direction === signalTimings[currentSignal].direction
+    )
   }
 
-  const currentLane = getCurrentLaneData()
+  const totalCycleTime = signalTimings.reduce((acc, timing) => acc + timing.green + timing.yellow, 0)
+  const currentLaneData = getCurrentLaneData()
+
+  if (!data) {
+    return (
+      <div className="card text-center">
+        <h2 className="text-xl font-semibold text-gray-900">Intersection Signal Control</h2>
+        <p>No traffic data available</p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -363,10 +380,10 @@ export default function SignalControl({ trafficData }: SignalControlProps) {
             <div className="flex items-center space-x-2">
               <button
                 onClick={toggleSimulation}
-                className={`btn-primary flex items-center space-x-2 ${isSimulationRunning ? 'bg-red-600 hover:bg-red-700' : ''}`}
+                className={`btn-primary flex items-center space-x-2 ${isRunning ? 'bg-red-600 hover:bg-red-700' : ''}`}
               >
-                {isSimulationRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                <span>{isSimulationRunning ? 'Stop' : 'Start'} Simulation</span>
+                {isRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                <span>{isRunning ? 'Stop' : 'Start'} Simulation</span>
               </button>
               <button
                 onClick={resetSimulation}
@@ -399,7 +416,7 @@ export default function SignalControl({ trafficData }: SignalControlProps) {
           <TrafficLightAnimation 
             signalTimings={signalTimings}
             currentSignal={currentSignal}
-            isRunning={isSimulationRunning}
+            isRunning={isRunning}
             onSignalComplete={handleSignalComplete}
             speed={simulationSpeed}
           />
@@ -482,27 +499,27 @@ export default function SignalControl({ trafficData }: SignalControlProps) {
         </div>
 
         {/* Current Lane Information */}
-        {currentLane && (
+        {currentLaneData && (
           <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
             <h3 className="font-semibold text-blue-800 mb-3">Current Active Lane</h3>
             <div className="grid md:grid-cols-4 gap-4">
               <div>
                 <p className="text-sm text-blue-600">Lane Name</p>
-                <p className="font-semibold text-blue-900">{currentLane.name}</p>
+                <p className="font-semibold text-blue-900">{currentLaneData.name}</p>
               </div>
               <div>
                 <p className="text-sm text-blue-600">Vehicle Count</p>
-                <p className="font-semibold text-blue-900">{currentLane.vehicleCount}</p>
+                <p className="font-semibold text-blue-900">{currentLaneData.vehicleCount}</p>
               </div>
               <div>
                 <p className="text-sm text-blue-600">Traffic Intensity</p>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${INTENSITY_COLORS[currentLane.trafficIntensity]}`}>
-                  {currentLane.trafficIntensity}
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${INTENSITY_COLORS[currentLaneData.trafficIntensity]}`}>
+                  {currentLaneData.trafficIntensity}
                 </span>
               </div>
               <div>
                 <p className="text-sm text-blue-600">Average Speed</p>
-                <p className="font-semibold text-blue-900">{currentLane.averageSpeed.toFixed(1)} km/h</p>
+                <p className="font-semibold text-blue-900">{currentLaneData.averageSpeed.toFixed(1)} km/h</p>
               </div>
             </div>
           </div>
@@ -543,7 +560,7 @@ export default function SignalControl({ trafficData }: SignalControlProps) {
           <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
             <h3 className="font-semibold text-purple-800 mb-2">Cycle Time</h3>
             <p className="text-purple-700">
-              {cycleTime}s total cycle
+              {totalCycleTime}s total cycle
             </p>
             <p className="text-sm text-purple-600 mt-1">
               {signalTimings.length} phases
@@ -553,25 +570,25 @@ export default function SignalControl({ trafficData }: SignalControlProps) {
       </div>
 
       {/* Traffic Statistics */}
-      {trafficData && (
+      {data && (
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Intersection Statistics</h3>
           <div className="grid md:grid-cols-4 gap-4">
             <div>
               <p className="text-sm text-gray-600">Total Vehicles</p>
-              <p className="text-2xl font-bold text-primary-600">{trafficData.intersectionData.totalVehicles}</p>
+              <p className="text-2xl font-bold text-primary-600">{data.intersectionData.totalVehicles}</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Processing Time</p>
-              <p className="text-2xl font-bold text-primary-600">{trafficData.processingTime.toFixed(2)}s</p>
+              <p className="text-2xl font-bold text-primary-600">{data.processingTime.toFixed(2)}s</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">System Efficiency</p>
-              <p className="text-2xl font-bold text-primary-600">{(trafficData.intersectionData.efficiency * 100).toFixed(1)}%</p>
+              <p className="text-2xl font-bold text-primary-600">{(data.intersectionData.efficiency * 100).toFixed(1)}%</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Active Lanes</p>
-              <p className="text-2xl font-bold text-primary-600">{trafficData.intersectionData.lanes.length}</p>
+              <p className="text-2xl font-bold text-primary-600">{data.intersectionData.lanes.length}</p>
             </div>
           </div>
         </div>

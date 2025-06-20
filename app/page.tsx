@@ -65,7 +65,7 @@ export default function Home() {
           )}
           
           {activeTab === 'control' && (
-            <SignalControl trafficData={trafficData} />
+            <SignalControl data={trafficData} />
           )}
           
           {activeTab === 'analytics' && trafficData && (
