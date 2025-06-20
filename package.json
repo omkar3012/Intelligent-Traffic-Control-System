@@ -1,0 +1,43 @@
+{
+  "name": "intelligent-traffic-control-system",
+  "version": "1.0.0",
+  "description": "An AI-powered Intelligent Traffic Control System with real-time vehicle detection, adaptive signal timing, and a dynamic Next.js frontend.",
+  "author": "Omkar",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OMKAR2003/Intelligent-Traffic-Control-System"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "14.0.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "axios": "^1.6.2",
+    "react-dropzone": "^14.2.3",
+    "react-player": "^2.13.0",
+    "lucide-react": "^0.294.0",
+    "tailwindcss": "^3.3.6",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "@headlessui/react": "^1.7.17",
+    "framer-motion": "^10.16.16",
+    "react-hot-toast": "^2.4.1",
+    "chart.js": "^4.4.0",
+    "react-chartjs-2": "^5.2.0",
+    "recharts": "^2.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.4",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.17",
+    "eslint": "^8.55.0",
+    "eslint-config-next": "14.0.4",
+    "typescript": "^5.3.3"
+  }
+} 
