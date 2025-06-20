@@ -18,10 +18,13 @@ export default function Analytics({ trafficData }: AnalyticsProps) {
   }
 
   // Prepare data for charts
-  const vehicleTypeCounts = trafficData.vehicleDetections.reduce((acc, detection) => {
-    acc[detection.label] = (acc[detection.label] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
+  const allDetections = trafficData.intersectionData.lanes
+    .flatMap(lane => lane.vehicleDetections || []);
+
+  const vehicleTypeCounts = allDetections.reduce((acc, detection) => {
+    acc[detection.label] = (acc[detection.label] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
   const barChartData = Object.entries(vehicleTypeCounts).map(([type, count]) => ({
     type: type.charAt(0).toUpperCase() + type.slice(1),
@@ -35,7 +38,7 @@ export default function Analytics({ trafficData }: AnalyticsProps) {
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8']
 
-  const signalEfficiencyData = trafficData.signalTimings.map((timing, index) => ({
+  const signalEfficiencyData = trafficData.intersectionData.signalTimings.map((timing, index) => ({
     direction: timing.direction,
     green: timing.green,
     yellow: timing.yellow,
@@ -52,7 +55,7 @@ export default function Analytics({ trafficData }: AnalyticsProps) {
         <div className="grid md:grid-cols-4 gap-4 mb-8">
           <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
             <h3 className="text-sm font-medium text-blue-800">Total Vehicles</h3>
-            <p className="text-2xl font-bold text-blue-900">{trafficData.vehicleCount}</p>
+            <p className="text-2xl font-bold text-blue-900">{trafficData.intersectionData.totalVehicles}</p>
           </div>
           <div className="p-4 bg-green-50 rounded-lg border border-green-200">
             <h3 className="text-sm font-medium text-green-800">Processing Time</h3>
@@ -64,7 +67,7 @@ export default function Analytics({ trafficData }: AnalyticsProps) {
           </div>
           <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
             <h3 className="text-sm font-medium text-orange-800">Signals Optimized</h3>
-            <p className="text-2xl font-bold text-orange-900">{trafficData.signalTimings.length}</p>
+            <p className="text-2xl font-bold text-orange-900">{trafficData.intersectionData.signalTimings.length}</p>
           </div>
         </div>
 
@@ -131,8 +134,8 @@ export default function Analytics({ trafficData }: AnalyticsProps) {
             <ul className="space-y-2 text-sm text-gray-600">
               <li>• Most common vehicle type: {Object.entries(vehicleTypeCounts).sort((a, b) => b[1] - a[1])[0]?.[0]}</li>
               <li>• Average processing time: {trafficData.processingTime.toFixed(2)} seconds</li>
-              <li>• Total vehicle density: {trafficData.vehicleCount} vehicles detected</li>
-              <li>• Signal optimization applied to {trafficData.signalTimings.length} directions</li>
+              <li>• Total vehicle density: {trafficData.intersectionData.totalVehicles} vehicles detected</li>
+              <li>• Signal optimization applied to {trafficData.intersectionData.signalTimings.length} directions</li>
             </ul>
           </div>
           
