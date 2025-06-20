@@ -295,23 +295,25 @@ function calculateSignalTimings(lanes: any[]) {
 
   const totalIntensity = lanes.reduce((sum, lane) => sum + lane.vehicleCount, 0)
   if (totalIntensity === 0) {
-    return lanes.map(lane => ({
+    return lanes.map((lane, index) => ({
       ...lane,
+      lane: index + 1,
+      priority: 0,
       green: baseGreenTime,
       yellow: yellowTime,
       red: baseGreenTime * (lanes.length - 1) + yellowTime * lanes.length,
     }));
   }
 
-  const signalTimings = lanes.map((lane) => {
+  const signalTimingsWithWeight = lanes.map((lane) => {
     const intensityWeight = Math.exp(lane.vehicleCount / 20) - 1;
     return { ...lane, intensityWeight };
   });
 
-  const totalWeight = signalTimings.reduce((sum, lane) => sum + lane.intensityWeight, 0);
+  const totalWeight = signalTimingsWithWeight.reduce((sum, lane) => sum + lane.intensityWeight, 0);
 
   let totalGreenTime = 0;
-  const finalTimings = signalTimings.map((lane) => {
+  const finalTimings = signalTimingsWithWeight.map((lane) => {
     let greenTime;
     if (totalWeight === 0) {
       greenTime = baseGreenTime;
@@ -323,9 +325,11 @@ function calculateSignalTimings(lanes: any[]) {
     return { ...lane, green: greenTime, yellow: yellowTime };
   });
 
-  return finalTimings.map(timing => ({
+  return finalTimings.map((timing, index) => ({
     ...timing,
-    red: totalGreenTime - timing.green + yellowTime * (lanes.length -1),
+    lane: index + 1,
+    priority: timing.intensityWeight,
+    red: totalGreenTime - timing.green + yellowTime * (lanes.length - 1),
   }));
 }
 

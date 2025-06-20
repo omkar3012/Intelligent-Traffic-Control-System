@@ -22,7 +22,7 @@ export interface SignalTiming {
   direction: string
   lane: number
   trafficIntensity: 'low' | 'medium' | 'high'
-  priority: number
+  priority?: number
 }
 
 export interface IntersectionData {

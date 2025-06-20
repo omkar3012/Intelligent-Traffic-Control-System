@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Settings, Play, Pause, RotateCcw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, TrendingUp, Clock, Zap } from 'lucide-react'
+import { Settings, Play, Pause, RotateCcw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, TrendingUp, Clock, Zap, Sun, Wind, Moon } from 'lucide-react'
 import { TrafficData } from '@/types/traffic'
 
 interface SignalControlProps {
