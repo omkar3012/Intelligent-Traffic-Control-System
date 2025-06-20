@@ -35,7 +35,7 @@ Follow these instructions to get a copy of the project up and running on your lo
 ### Local Setup
 
 1.  **Clone the repository:**
-    ```bash
+   ```bash
     git clone https://github.com/OMKAR2003/Intelligent-Traffic-Control-System.git
     cd Intelligent-Traffic-Control-System
     ```
@@ -46,24 +46,24 @@ Follow these instructions to get a copy of the project up and running on your lo
     -   Create a `bin` folder in the root of the project and place the downloaded `yolov2.weights` file inside it. The final path should be `./bin/yolov2.weights`.
 
 3.  **Set up the Python environment:**
-    ```bash
+   ```bash
     # Create and activate a virtual environment
     python -m venv venv310
     source venv310/bin/activate  # On Windows, use `venv310\Scripts\activate`
 
     # Install Python dependencies
-    pip install -r requirements.txt
-    ```
+   pip install -r requirements.txt
+   ```
 
 4.  **Install frontend dependencies:**
-    ```bash
+   ```bash
     npm install
     ```
 
 5.  **Run the development server:**
-    ```bash
-    npm run dev
-    ```
+   ```bash
+   npm run dev
+   ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
 
