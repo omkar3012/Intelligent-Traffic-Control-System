@@ -91,13 +91,26 @@ export default function FileUpload({ onFileProcessed, isProcessing, setIsProcess
         body: formData,
       })
 
-      const result = await response.json()
+      let result = null
+      let isJson = false
+      try {
+        result = await response.json()
+        isJson = true
+      } catch (e) {
+        isJson = false
+      }
 
-      if (result.success) {
+      if (response.status === 413) {
+        toast.error('File too large. Maximum allowed size is 4MB.', { id: 'processing' })
+      } else if (!response.ok) {
+        toast.error('Server error: ' + response.statusText, { id: 'processing' })
+      } else if (isJson && result && result.success) {
         toast.success('Intersection processed successfully!', { id: 'processing' })
         onFileProcessed(result.data)
-      } else {
+      } else if (isJson && result && !result.success) {
         toast.error(result.error || 'Processing failed', { id: 'processing' })
+      } else {
+        toast.error('Unexpected server response.', { id: 'processing' })
       }
     } catch (error) {
       console.error('Processing error:', error)
