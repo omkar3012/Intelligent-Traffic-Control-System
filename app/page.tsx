@@ -68,8 +68,8 @@ export default function Home() {
             <SignalControl trafficData={trafficData} />
           )}
           
-          {activeTab === 'analytics' && (
-            <Analytics trafficData={trafficData} />
+          {activeTab === 'analytics' && trafficData && (
+            <Analytics data={trafficData} />
           )}
         </div>
       </main>
