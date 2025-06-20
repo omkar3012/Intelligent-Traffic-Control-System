@@ -1,10 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
+  experimental: {},
   images: {
-    domains: ['localhost'],
+    domains: ['images.unsplash.com', 'source.unsplash.com'],
   },
   async headers() {
     return [

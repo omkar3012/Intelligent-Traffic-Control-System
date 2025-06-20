@@ -158,15 +158,7 @@ export default function TrafficDisplay({ data }: TrafficDisplayProps) {
                       </div>
                       <div className="flex items-center space-x-1">
                         <TrendingUp className="h-4 w-4 text-primary-600" />
-                        <div className="flex items-center text-sm">
-                          <span className="w-16 font-medium text-gray-700">Priority:</span>
-                          <div className="w-full bg-gray-200 rounded-full h-2.5">
-                            <div 
-                              className="bg-blue-600 h-2.5 rounded-full" 
-                              style={{ width: `${(timing.priority || 0) * 100}%` }}
-                            ></div>
-                          </div>
-                        </div>
+                        <span className="text-sm font-medium">Priority: {(timing.priority || 0).toFixed(1)}</span>
                       </div>
                     </div>
                     
