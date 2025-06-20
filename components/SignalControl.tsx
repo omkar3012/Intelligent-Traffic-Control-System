@@ -316,11 +316,7 @@ export default function SignalControl({ data }: SignalControlProps) {
   const signalTimings = editedTimings || originalTimings || []
 
   useEffect(() => {
-    if (data?.intersectionData) {
-      const timings = data.intersectionData.signalTimings
-      setSignalTimings(timings)
-    }
-    // When trafficData changes, reset the simulation
+    // When new data is received, reset the simulation state and clear any edits.
     resetSimulation()
   }, [data])
 
