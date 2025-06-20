@@ -1,5 +1,9 @@
 # Intelligent Traffic Control System 🚦
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-View%20App-blue?style=for-the-badge)](https://intelligent-traffic-control-system.vercel.app/)
+
+**Live App:** [https://intelligent-traffic-control-system.vercel.app/](https://intelligent-traffic-control-system.vercel.app/)
+
 ![Intelligent Traffic Control System Demo](<./images/down/1.jpeg>)
 
 An AI-powered Intelligent Traffic Control System with real-time vehicle detection, adaptive signal timing, and a dynamic Next.js frontend. This project simulates a modern traffic management solution, using computer vision to optimize traffic flow and provide analytics.
@@ -23,6 +27,8 @@ An AI-powered Intelligent Traffic Control System with real-time vehicle detectio
 -   **API**: Next.js API Routes (Serverless Functions)
 
 ## 🚀 Getting Started
+
+**Try the live demo:** [https://intelligent-traffic-control-system.vercel.app/](https://intelligent-traffic-control-system.vercel.app/)
 
 Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
 
@@ -66,6 +72,8 @@ Follow these instructions to get a copy of the project up and running on your lo
    ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
+
+Or use the hosted version: [https://intelligent-traffic-control-system.vercel.app/](https://intelligent-traffic-control-system.vercel.app/)
 
 ## 🌐 Deployment
 

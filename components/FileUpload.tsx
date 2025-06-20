@@ -51,6 +51,11 @@ export default function FileUpload({ onFileProcessed, isProcessing, setIsProcess
   const onDrop = useCallback((acceptedFiles: File[], laneId: string) => {
     const file = acceptedFiles[0]
     if (file) {
+      const MAX_FILE_SIZE = 4 * 1024 * 1024 // 4MB
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`File "${file.name}" is too large. Maximum allowed size is 4MB.`)
+        return
+      }
       setLaneUploads(laneUploads.map(lane => 
         lane.id === laneId ? { ...lane, file } : lane
       ))

@@ -37,6 +37,16 @@ export async function POST(request: NextRequest) {
       const file = formData.get(`file_${lane.id}`) as File
       if (!file) continue
 
+      // Vercel serverless functions have a hard 4MB body size limit
+      // Check file size (file.size is in bytes)
+      const MAX_FILE_SIZE = 4 * 1024 * 1024 // 4MB
+      if (file.size > MAX_FILE_SIZE) {
+        return NextResponse.json(
+          { success: false, error: `File for lane ${lane.id} exceeds 4MB limit. Please upload a smaller file.` },
+          { status: 413 }
+        )
+      }
+
       // Validate file type
       const allowedTypes = ['video/mp4', 'video/avi', 'video/mov', 'video/mkv', 'image/jpeg', 'image/png', 'image/bmp']
       if (!allowedTypes.includes(file.type)) {
