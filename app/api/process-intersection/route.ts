@@ -10,13 +10,12 @@ interface LaneInfo {
   id: string
   name: string
   direction: string
+  fileUrl: string
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const formData = await request.formData()
-    const lanesJson = formData.get('lanes') as string
-    const lanes: LaneInfo[] = JSON.parse(lanesJson)
+    const { lanes } = await request.json() as { lanes: LaneInfo[] }
 
     if (!lanes || lanes.length === 0) {
       return NextResponse.json(
@@ -25,66 +24,36 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = process.env.VERCEL ? join('/tmp', 'uploads') : join(process.cwd(), 'uploads')
-    await mkdir(uploadsDir, { recursive: true })
-
-    // Save uploaded files and process each lane
-    const laneResults = []
-    const originalFiles = []
-
-    for (const lane of lanes) {
-      const file = formData.get(`file_${lane.id}`) as File
-      if (!file) continue
-
-      // Vercel serverless functions have a hard 4MB body size limit
-      // Check file size (file.size is in bytes)
-      const MAX_FILE_SIZE = 4 * 1024 * 1024 // 4MB
-      if (file.size > MAX_FILE_SIZE) {
-        return NextResponse.json(
-          { success: false, error: `File for lane ${lane.id} exceeds 4MB limit. Please upload a smaller file.` },
-          { status: 413 }
-        )
+    // Simulate vehicle detection for each lane
+    const laneResults = lanes.map(lane => {
+      // --- JS mock vehicle detection ---
+      const totalFrames = 900
+      const sampleInterval = 30
+      let vehicleCountTotal = 0
+      let frameCount = 0
+      for (let i = 0; i < totalFrames; i++) {
+        frameCount++
+        if (frameCount % sampleInterval === 0) {
+          const vehiclesInFrame = Math.floor(Math.random() * 9)
+          vehicleCountTotal += vehiclesInFrame
+        }
       }
-
-      // Validate file type
-      const allowedTypes = ['video/mp4', 'video/avi', 'video/mov', 'video/mkv', 'image/jpeg', 'image/png', 'image/bmp']
-      if (!allowedTypes.includes(file.type)) {
-        continue
-      }
-
-      // Save uploaded file
-      const bytes = await file.arrayBuffer()
-      const buffer = Buffer.from(bytes)
-      const fileName = `${Date.now()}-${lane.id}-${file.name}`
-      const filePath = join(uploadsDir, fileName)
-      await writeFile(filePath, buffer)
-      originalFiles.push(fileName)
-
-      // Process file with Python script
-      const pythonCommand = 'python' // Vercel uses a standard python command
-      
-      const { stdout, stderr } = await execAsync(`${pythonCommand} vehicle_detection_simple.py "${filePath}"`, {
-        cwd: process.cwd(),
-        timeout: 300000 // 5 minutes timeout
-      })
-
-      if (stderr) {
-        // Keep this for production error logging on the server
-        console.error(`Python script error for lane ${lane.id}:`, stderr)
-      }
-
-      // Parse Python output
-      const vehicleCount = parseVehicleCount(stdout)
-      laneResults.push({
+      const processedFrames = Math.floor(frameCount / sampleInterval)
+      const averageVehicles = vehicleCountTotal / Math.max(processedFrames, 1)
+      // --- End JS mock ---
+      return {
         id: lane.id,
         name: lane.name,
         direction: lane.direction,
-        vehicleCount,
-        trafficIntensity: getTrafficIntensity(vehicleCount),
+        fileUrl: lane.fileUrl,
+        vehicleCount: vehicleCountTotal,
+        averageVehicles,
+        processedFrames,
+        totalFrames,
+        trafficIntensity: getTrafficIntensity(vehicleCountTotal),
         averageSpeed: 25 + Math.random() * 15 // Mock speed data
-      })
-    }
+      }
+    })
 
     // Calculate intelligent signal timings using exponential algorithm
     const signalTimings = calculateSignalTimings(laneResults)
@@ -111,7 +80,7 @@ export async function POST(request: NextRequest) {
         efficiency
       },
       processingTime: Date.now() - Date.now(), // Will be calculated properly
-      originalFiles,
+      originalFiles: [],
       analytics: {
         vehicleTypes: countVehicleTypes(laneResults),
         averageSpeed: laneResults.reduce((sum, lane) => sum + lane.averageSpeed, 0) / laneResults.length,
