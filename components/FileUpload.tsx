@@ -5,7 +5,6 @@ import { useDropzone } from 'react-dropzone'
 import { Upload, Video, Image, File, Loader2, Plus, X, Car, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { TrafficData, LaneUpload } from '@/types/traffic'
-import { supabase } from '@/lib/supabaseClient'
 
 interface FileUploadProps {
   onFileProcessed: (data: TrafficData) => void
@@ -19,17 +18,6 @@ const LANE_DIRECTIONS = [
   { id: 'east', name: 'East', icon: ArrowRight, color: 'text-red-600' },
   { id: 'west', name: 'West', icon: ArrowLeft, color: 'text-purple-600' },
 ]
-
-async function uploadToSupabase(file: File, laneId: string) {
-  const filePath = `${laneId}/${Date.now()}-${file.name}`
-  const { data, error } = await supabase.storage
-    .from('videos') // your bucket name
-    .upload(filePath, file)
-  if (error) throw error
-  // Get public URL
-  const { publicURL } = supabase.storage.from('videos').getPublicUrl(filePath)
-  return publicURL
-}
 
 export default function FileUpload({ onFileProcessed, isProcessing, setIsProcessing }: FileUploadProps) {
   const [laneUploads, setLaneUploads] = useState<LaneUpload[]>([])
@@ -84,30 +72,24 @@ export default function FileUpload({ onFileProcessed, isProcessing, setIsProcess
     setIsProcessing(true)
     toast.loading('Processing intersection data...', { id: 'processing' })
     try {
-      // Upload all files to Supabase and collect URLs
-      const lanesWithUrls = await Promise.all(lanesWithFiles.map(async lane => {
-        const fileUrl = await uploadToSupabase(lane.file, lane.id)
-        return {
-          id: lane.id,
-          name: lane.name,
-          direction: lane.direction,
-          fileUrl,
-        }
-      }))
-      // Send only metadata and file URLs to your new Render backend
+      // Prepare FormData to send files directly to the Render backend
+      const formData = new FormData()
+      formData.append('lanes', JSON.stringify(lanesWithFiles.map(lane => ({
+        id: lane.id,
+        name: lane.name,
+        direction: lane.direction
+      }))))
+      lanesWithFiles.forEach(lane => {
+        formData.append(`file_${lane.id}`, lane.file)
+      })
       const response = await fetch('https://intelligent-traffic-control-system.onrender.com/process-video', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lanes: lanesWithUrls }),
+        body: formData,
       })
-
-      // The Render service returns the processed data directly
       const result = await response.json()
-
       if (response.ok) {
         toast.success('Intersection processed successfully!', { id: 'processing' })
-        // We need to map the backend response to the format onFileProcessed expects
-        const trafficData = mapBackendResponseToTrafficData(result, lanesWithUrls)
+        const trafficData = mapBackendResponseToTrafficData(result, lanesWithFiles)
         onFileProcessed(trafficData)
       } else {
         toast.error(result.error || 'Processing failed', { id: 'processing' })
