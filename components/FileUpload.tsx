@@ -117,11 +117,8 @@ export default function FileUpload({ onFileProcessed, isProcessing, setIsProcess
   // Helper function to map the new backend response to the existing TrafficData type
   function mapBackendResponseToTrafficData(backendData: any, lanes: any[]): TrafficData {
     const laneResults = lanes.map(lane => {
-      // The backend returns a flat object, not nested by lane ID. 
-      // We'll assume the first result corresponds to the first lane, etc.
-      // A more robust solution would involve matching by a unique identifier.
-      const backendLaneData = backendData || {}; 
-      const vehicleCount = backendData.vehicle_count || Math.floor(Math.random() * 50) + 10;
+      const backendLaneData = backendData[lane.id] || {};
+      const vehicleCount = backendLaneData.vehicle_count ?? (Math.floor(Math.random() * 50) + 10);
       
       return {
         id: lane.id,
@@ -130,9 +127,7 @@ export default function FileUpload({ onFileProcessed, isProcessing, setIsProcess
         vehicleCount: vehicleCount,
         trafficIntensity: getTrafficIntensity(vehicleCount),
         averageSpeed: 25 + Math.random() * 15, // Mock speed data
-        fileUrl: lane.fileUrl,
         vehicleDetections: [], // Add missing property
-        // Add other fields from backendData if available
       };
     });
 
@@ -150,7 +145,7 @@ export default function FileUpload({ onFileProcessed, isProcessing, setIsProcess
         efficiency: 0,
       },
       processingTime: 0,
-      originalFiles: lanes.map(l => l.fileUrl),
+      originalFiles: lanes.map(l => l.file.name),
       analytics: {
         vehicleTypes: {},
         averageSpeed: 0,
