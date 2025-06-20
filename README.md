@@ -1,6 +1,6 @@
 # Intelligent Traffic Control System 🚦
 
-![Intelligent Traffic Control System Demo](https://intelligent-traffic-control-system.vercel.app/)
+[Intelligent Traffic Control System Demo](https://intelligent-traffic-control-system.vercel.app/)
 
 An AI-powered Intelligent Traffic Control System with real-time vehicle detection, adaptive signal timing, and a dynamic Next.js frontend. This project simulates a modern traffic management solution, using computer vision to optimize traffic flow and provide analytics.
 
