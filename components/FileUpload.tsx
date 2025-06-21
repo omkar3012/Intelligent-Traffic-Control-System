@@ -92,9 +92,7 @@ export default function FileUpload({ onFileProcessed, isProcessing, setIsProcess
         body: formData,
       })
 
-      console.log("Raw backend response:", response);
       const result = await response.json()
-      console.log("Backend response JSON:", result);
 
       if (response.ok) {
         toast.success('Intersection processed successfully!', { id: 'processing' })
