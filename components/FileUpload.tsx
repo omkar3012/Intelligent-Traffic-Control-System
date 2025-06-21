@@ -355,60 +355,29 @@ function calculateEfficiency(lanes: any[], signalTimings: any[]): number {
   return Math.max(0, Math.min(1, efficiency))
 }
 
-function generateMockDetections(vehicleCount: number) {
-  const mockDetections = [
-    { label: 'car', confidence: 0.95, topleft: { x: 100, y: 150 }, bottomright: { x: 200, y: 250 } },
-    { label: 'bus', confidence: 0.87, topleft: { x: 300, y: 100 }, bottomright: { x: 450, y: 200 } },
-    { label: 'truck', confidence: 0.92, topleft: { x: 500, y: 200 }, bottomright: { x: 650, y: 300 } },
-    { label: 'bike', confidence: 0.78, topleft: { x: 150, y: 300 }, bottomright: { x: 180, y: 350 } },
-  ]
-  
-  const count = Math.min(vehicleCount, 4)
-  return Array.from({ length: vehicleCount }).map((_, i) => mockDetections[i % mockDetections.length]);
-}
-
-function countVehicleTypes(lanes: any[]) {
-  const types = ['car', 'bus', 'truck', 'bike']
-  const vehicleTypes = types.reduce((acc, type) => {
-    acc[type] = 0;
-    return acc;
-  }, {} as Record<string, number>);
-
-  lanes.forEach(lane => {
-    const detections = generateMockDetections(lane.vehicleCount);
-    detections.forEach(detection => {
-      if (vehicleTypes[detection.label] !== undefined) {
-        vehicleTypes[detection.label]++;
-      }
-    });
-  });
-
-  return vehicleTypes;
-}
-
 function getCongestionLevel(totalVehicles: number): 'low' | 'medium' | 'high' {
-  if (totalVehicles < 50) return 'low'
-  if (totalVehicles < 150) return 'medium'
-  return 'high'
+  if (totalVehicles < 50) return 'low';
+  if (totalVehicles < 150) return 'medium';
+  return 'high';
 }
 
 function generateRecommendations(lanes: any[]): string[] {
-  const recommendations = []
-  const highTrafficLanes = lanes.filter(lane => lane.trafficIntensity === 'high')
-  
+  const recommendations: string[] = [];
+  const highTrafficLanes = lanes.filter(lane => lane.trafficIntensity === 'high');
+
   if (highTrafficLanes.length > 0) {
-    recommendations.push('Consider extending green time for high-traffic directions')
+    recommendations.push('Consider extending green time for high-traffic directions');
   }
   if (lanes.some(lane => lane.vehicleCount > 40)) {
     recommendations.push('Implement dynamic signal timing based on real-time vehicle density');
   }
   if (lanes.length > 2) {
-    recommendations.push('Optimize signal coordination between multiple approaches')
+    recommendations.push('Optimize signal coordination between multiple approaches');
   }
-  
-  recommendations.push('Monitor traffic patterns for optimal signal timing')
-  
-  return recommendations
+
+  recommendations.push('Monitor traffic patterns for optimal signal timing');
+
+  return recommendations;
 }
 
 function calculateLaneEfficiency(lanes: any[], signalTimings: any[]): Record<string, number> {
@@ -449,8 +418,9 @@ function mapBackendResponseToTrafficData(backendData: any, lanes: LaneUpload[], 
       direction: lane.direction,
       vehicleCount: vehicleCount,
       trafficIntensity: getTrafficIntensity(vehicleCount),
-      averageSpeed: 25 + Math.random() * 15,
-      vehicleDetections: generateMockDetections(vehicleCount),
+      averageSpeed: 25 + Math.random() * 15, // Mocked for now
+      // vehicleDetections are not provided by the current backend, so we pass an empty array
+      vehicleDetections: [], 
     };
   });
 
@@ -459,6 +429,13 @@ function mapBackendResponseToTrafficData(backendData: any, lanes: LaneUpload[], 
   const cycleTime = signalTimings.reduce((sum, timing) => sum + timing.green + timing.yellow, 0);
   const efficiency = calculateEfficiency(laneResults, signalTimings);
   const processingTime = startTime ? (Date.now() - startTime) / 1000 : 0;
+
+  // Since we don't have detailed detections, we'll generate a simplified vehicle type count.
+  const vehicleTypes = laneResults.reduce((acc, lane) => {
+    acc['car'] = (acc['car'] || 0) + lane.vehicleCount;
+    return acc;
+  }, {} as Record<string, number>);
+
 
   return {
     id: Date.now().toString(),
@@ -473,7 +450,7 @@ function mapBackendResponseToTrafficData(backendData: any, lanes: LaneUpload[], 
     processingTime: processingTime,
     originalFiles: lanes.map(l => l.file.name),
     analytics: {
-      vehicleTypes: countVehicleTypes(laneResults),
+      vehicleTypes: vehicleTypes,
       averageSpeed: laneResults.reduce((sum, lane) => sum + lane.averageSpeed, 0) / (laneResults.length || 1),
       congestionLevel: getCongestionLevel(totalVehicles),
       recommendations: generateRecommendations(laneResults),
