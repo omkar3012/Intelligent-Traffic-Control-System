@@ -52,6 +52,12 @@ export default function FileUpload({ onFileProcessed, isProcessing, setIsProcess
   const onDrop = useCallback((acceptedFiles: File[], laneId: string) => {
     const file = acceptedFiles[0]
     if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error(`"${file.name}" is not an image file. Please upload a valid image.`);
+        return;
+      }
+      
       const MAX_FILE_SIZE = 4 * 1024 * 1024;
       if (file.size > MAX_FILE_SIZE) {
         toast.error(`Image "${file.name}" is too large. Maximum allowed size is 4MB.`);
@@ -111,7 +117,6 @@ export default function FileUpload({ onFileProcessed, isProcessing, setIsProcess
   }
 
   const getFileIcon = (file: File) => {
-    if (file.type.startsWith('video/')) return <Video className="h-6 w-6 text-blue-500" />
     if (file.type.startsWith('image/')) return <Image className="h-6 w-6 text-green-500" />
     return <File className="h-6 w-6 text-gray-500" />
   }
