@@ -54,13 +54,13 @@ export default function FileUpload({ onFileProcessed, isProcessing, setIsProcess
     if (file) {
       const MAX_FILE_SIZE = 4 * 1024 * 1024;
       if (file.size > MAX_FILE_SIZE) {
-        toast.error(`File "${file.name}" is too large. Maximum allowed size is 4MB.`);
+        toast.error(`Image "${file.name}" is too large. Maximum allowed size is 4MB.`);
         return;
       }
       setLaneUploads(laneUploads.map(lane =>
         lane.id === laneId ? { ...lane, file } : lane
       ));
-      toast.success(`File "${file.name}" uploaded for ${laneUploads.find(l => l.id === laneId)?.name}`);
+      toast.success(`Image "${file.name}" uploaded for ${laneUploads.find(l => l.id === laneId)?.name}`);
     }
   }, [laneUploads]);
   
@@ -68,12 +68,12 @@ export default function FileUpload({ onFileProcessed, isProcessing, setIsProcess
   const processFiles = async () => {
     const lanesWithFiles = laneUploads.filter(lane => lane.file)
     if (lanesWithFiles.length === 0) {
-      toast.error('Please upload at least one video file')
+      toast.error('Please upload at least one traffic image')
       return
     }
     setProcessingStartTime(Date.now());
     setIsProcessing(true)
-    toast.loading('Processing intersection data...', { id: 'processing' })
+    toast.loading('Analyzing traffic images...', { id: 'processing' })
     
     try {
       const formData = new FormData()
@@ -95,15 +95,15 @@ export default function FileUpload({ onFileProcessed, isProcessing, setIsProcess
       const result = await response.json()
 
       if (response.ok) {
-        toast.success('Intersection processed successfully!', { id: 'processing' })
+        toast.success('Traffic analysis completed successfully!', { id: 'processing' })
         const trafficData = mapBackendResponseToTrafficData(result, lanesWithFiles, processingStartTime)
         onFileProcessed(trafficData)
       } else {
-        toast.error(result.error || 'Processing failed', { id: 'processing' })
+        toast.error(result.error || 'Analysis failed', { id: 'processing' })
       }
     } catch (error) {
       console.error('Processing error:', error)
-      toast.error('Failed to process intersection', { id: 'processing' })
+      toast.error('Failed to analyze traffic images', { id: 'processing' })
     } finally {
       setIsProcessing(false)
       setProcessingStartTime(null);
@@ -120,8 +120,7 @@ export default function FileUpload({ onFileProcessed, isProcessing, setIsProcess
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
       onDrop: (files) => onDrop(files, lane.id),
       accept: {
-        'video/*': ['.mp4', '.avi', '.mov', '.mkv'],
-        'image/*': ['.jpg', '.jpeg', '.png', '.bmp']
+        'image/*': ['.jpg', '.jpeg', '.png', '.bmp', '.webp']
       },
       maxFiles: 1,
       disabled: isProcessing
@@ -186,7 +185,7 @@ export default function FileUpload({ onFileProcessed, isProcessing, setIsProcess
             <div>
               <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
               <p className="text-sm text-gray-600">
-                {isDragActive ? 'Drop video here...' : 'Click or drag video file'}
+                {isDragActive ? 'Drop image here...' : 'Click or drag traffic image'}
               </p>
             </div>
           )}
@@ -242,10 +241,10 @@ export default function FileUpload({ onFileProcessed, isProcessing, setIsProcess
               {isProcessing ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>Processing...</span>
+                  <span>Analyzing...</span>
                 </>
               ) : (
-                'Analyze Intersection'
+                'Analyze Traffic Images'
               )}
             </button>
           </div>
@@ -254,23 +253,23 @@ export default function FileUpload({ onFileProcessed, isProcessing, setIsProcess
 
       <div className="grid md:grid-cols-3 gap-4">
         <div className="card">
-          <h3 className="font-semibold text-gray-900 mb-2">Multi-Lane Detection</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">Multi-Lane Analysis</h3>
           <p className="text-sm text-gray-600">
-            Upload videos from multiple directions to analyze intersection traffic patterns
+            Upload traffic images from multiple directions to analyze intersection patterns
           </p>
         </div>
         
         <div className="card">
           <h3 className="font-semibold text-gray-900 mb-2">Intelligent Timing</h3>
           <p className="text-sm text-gray-600">
-            Exponential algorithm distributes green time based on traffic intensity per lane
+            Algorithm distributes green time based on detected traffic density per lane
           </p>
         </div>
         
         <div className="card">
-          <h3 className="font-semibold text-gray-900 mb-2">Real-time Optimization</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">Fast Processing</h3>
           <p className="text-sm text-gray-600">
-            Dynamic signal timing that adapts to changing traffic conditions
+            Lightweight image analysis provides quick traffic assessment results
           </p>
         </div>
       </div>
