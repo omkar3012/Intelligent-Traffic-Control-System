@@ -52,13 +52,8 @@ export default function Analytics({ data }: AnalyticsProps) {
     )
   }
 
-  // Prepare data for charts
-  const allDetections = lanes.flatMap(lane => lane.vehicleDetections || []);
-
-  const vehicleTypeCounts = allDetections.reduce((acc, detection) => {
-    acc[detection.label] = (acc[detection.label] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  // Use vehicle types from analytics instead of processing empty detections
+  const vehicleTypeCounts = analytics?.vehicleTypes || {};
 
   const barChartData = Object.entries(vehicleTypeCounts).map(([type, count]) => ({
     type: type.charAt(0).toUpperCase() + type.slice(1),

@@ -46,13 +46,7 @@ export default function TrafficDisplay({ data }: TrafficDisplayProps) {
   }
 
   const getVehicleTypeCount = () => {
-    const counts: Record<string, number> = {}
-    lanes.forEach(lane => {
-      lane.vehicleDetections.forEach(detection => {
-        counts[detection.label] = (counts[detection.label] || 0) + 1
-      })
-    })
-    return counts
+    return data.analytics?.vehicleTypes || {}
   }
 
   const vehicleCounts = getVehicleTypeCount()
@@ -131,7 +125,7 @@ export default function TrafficDisplay({ data }: TrafficDisplayProps) {
                     </div>
                     <div className="flex items-center justify-between text-sm text-gray-600">
                       <span>Avg Speed: {lane.averageSpeed.toFixed(1)} km/h</span>
-                      <span>{lane.vehicleDetections.length} detections</span>
+                      <span>{lane.vehicleCount} vehicles</span>
                     </div>
                   </div>
                 )
